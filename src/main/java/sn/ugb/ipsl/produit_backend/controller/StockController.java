@@ -12,7 +12,7 @@ import sn.ugb.ipsl.produit_backend.service.StockService;
 
 @RestController
 @RequestMapping("/api/stock")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*", allowCredentials = "true")
 @Tag(name = "Mouvements de Stock", description = "Endpoints pour enregistrer les entrées (achats) et sorties (ventes)")
 public class StockController {
 
