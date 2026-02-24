@@ -10,7 +10,7 @@ import sn.ugb.ipsl.produit_backend.ia.PredictionResult;
 
 @RestController
 @RequestMapping("/api/ia")
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:4200")
 @Tag(name = "Analyse IA & Prédictions", description = "Calculs avancés pour anticiper les ruptures de stock et analyser les tendances")
 public class IAController {
 
