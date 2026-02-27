@@ -6,9 +6,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -24,29 +23,37 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Activation du CORS
-                .csrf(csrf -> csrf.disable()) // Désactivation CSRF pour le développement
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable()) // Désactivé pour faciliter les tests REST
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Autoriser les requêtes de vérification du navigateur (IMPORTANT)
+                        // 1. Autoriser les requêtes OPTIONS (CORS Pre-flight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // 2. Swagger et documentation
+
+                        // 2. Autoriser l'accès PUBLIC aux routes d'authentification (Login/Register)
+                        // C'est cette ligne qui débloque ton erreur "Identifiants incorrects"
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // 3. Documentation API
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                        // 3. Tout le reste nécessite l'utilisateur xhadee
+
+                        // 4. Tout le reste nécessite une authentification
                         .anyRequest().authenticated()
                 )
+                // Utilisation de l'authentification basique pour la session
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
 
-    // Configuration précise des accès CORS
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // Autorise Angular
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        // Autorise explicitement ton frontend Angular
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:4200"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
         configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -54,11 +61,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails admin = User.withUsername("xhadee")
-                .password("{noop}xhadee")
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(admin);
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

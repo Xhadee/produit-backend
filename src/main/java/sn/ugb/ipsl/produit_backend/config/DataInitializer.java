@@ -2,6 +2,7 @@ package sn.ugb.ipsl.produit_backend.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import sn.ugb.ipsl.produit_backend.model.*;
 import sn.ugb.ipsl.produit_backend.repository.*;
@@ -15,9 +16,23 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired private CategorieRepository categorieRepository;
     @Autowired private FournisseurRepository fournisseurRepository;
     @Autowired private MouvementStockRepository mouvementRepository;
+    @Autowired private UtilisateurRepository utilisateurRepository; // Ajouté
+    @Autowired private PasswordEncoder passwordEncoder; // Ajouté
 
     @Override
     public void run(String... args) throws Exception {
+        // --- AJOUT DE L'UTILISATEUR ---
+        if (utilisateurRepository.findByUsername("xhadee").isEmpty()) {
+            Utilisateur admin = new Utilisateur();
+            admin.setUsername("xhadee");
+            admin.setPassword(passwordEncoder.encode("xhadee"));
+            admin.setNom("Xhadee Admin");
+            admin.setEmail("admin@ugb.sn");
+            admin.setRole("ADMIN");
+            utilisateurRepository.save(admin);
+            System.out.println("🔐 Utilisateur 'xhadee' créé avec succès.");
+        }
+
         if (categorieRepository.count() > 0) return;
 
         System.out.println("🚀 Initialisation du catalogue avec adresses fournisseurs...");
