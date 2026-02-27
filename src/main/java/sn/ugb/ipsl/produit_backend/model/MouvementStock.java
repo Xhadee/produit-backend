@@ -1,6 +1,8 @@
 package sn.ugb.ipsl.produit_backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -21,11 +23,17 @@ public class MouvementStock {
     @Enumerated(EnumType.STRING)
     private TypeMouvement type;
 
+    // Force le nom de la colonne pour correspondre à MySQL et le nom JSON pour Angular
+    @Column(name = "date_mouvement")
+    @JsonProperty("dateMouvement")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime dateMouvement;
 
     @PrePersist
     protected void onCreate() {
-        dateMouvement = LocalDateTime.now();
+        if (this.dateMouvement == null) {
+            this.dateMouvement = LocalDateTime.now();
+        }
     }
 
     // --- CONSTRUCTEURS ---
@@ -35,9 +43,10 @@ public class MouvementStock {
         this.produit = produit;
         this.quantite = quantite;
         this.type = type;
+        this.dateMouvement = LocalDateTime.now(); // Initialisation explicite
     }
 
-    // --- GETTERS ET SETTERS MANUELS ---
+    // --- GETTERS ET SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

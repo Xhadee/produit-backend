@@ -7,6 +7,7 @@ import java.util.List;
 
 @Repository
 public interface MouvementStockRepository extends JpaRepository<MouvementStock, Long> {
-    // Récupérer tous les mouvements d'un produit spécifique pour l'IA
-    List<MouvementStock> findByProduitIdOrderByDateMouvementAsc(Long produitId);
+
+    // Changement de Asc à Desc pour voir les mouvements les plus récents en premier
+    List<MouvementStock> findByProduitIdOrderByDateMouvementDesc(Long produitId);
 }

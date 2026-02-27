@@ -2,6 +2,7 @@ package sn.ugb.ipsl.produit_backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -9,8 +10,12 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import static org.springframework.security.config.Customizer.withDefaults;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -19,10 +24,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Activation du CORS
+                .csrf(csrf -> csrf.disable()) // Désactivation CSRF pour le développement
                 .authorizeHttpRequests(auth -> auth
-                        // On autorise Swagger et la documentation OpenAPI
+                        // 1. Autoriser les requêtes de vérification du navigateur (IMPORTANT)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // 2. Swagger et documentation
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        // 3. Tout le reste nécessite l'utilisateur xhadee
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
@@ -30,10 +39,22 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // Configuration précise des accès CORS
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // Autorise Angular
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     @Bean
     public InMemoryUserDetailsManager userDetailsService() {
-        // Définition d'un utilisateur admin fixe
-        // {noop} signifie qu'on n'utilise pas d'encodeur de mot de passe (pratique pour le dev)
         UserDetails admin = User.withUsername("xhadee")
                 .password("{noop}xhadee")
                 .roles("ADMIN")

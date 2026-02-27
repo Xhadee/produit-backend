@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import sn.ugb.ipsl.produit_backend.model.MouvementStock;
 import sn.ugb.ipsl.produit_backend.service.StockService;
 
+import java.util.List; // <--- AJOUT INDISPENSABLE
+
 @RestController
 @RequestMapping("/api/stock")
 @CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*", allowCredentials = "true")
@@ -18,6 +20,15 @@ public class StockController {
 
     @Autowired
     private StockService stockService;
+
+    @GetMapping("/mouvements/{id}")
+    @Operation(summary = "Récupérer l'historique des mouvements pour un produit",
+            description = "Retourne la liste complète des entrées et sorties triées par date.")
+    public List<MouvementStock> getHistorique(
+            @Parameter(description = "ID du produit dont on veut l'historique")
+            @PathVariable Long id) {
+        return stockService.getMouvementsParProduit(id);
+    }
 
     @PostMapping("/entree/{id}")
     @Operation(summary = "Enregistrer une entrée en stock",

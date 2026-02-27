@@ -49,4 +49,11 @@ public class ProduitController {
         produitService.supprimerProduit(id);
         return ResponseEntity.noContent().build(); // Renvoie un code 204 (Succès, pas de contenu)
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Modifier un produit existant", description = "Met à jour les informations d'un produit (désignation, prix, stock, catégorie, fournisseur).")
+    public ResponseEntity<Produit> modifier(@PathVariable Long id, @RequestBody Produit produitDetails) {
+        Produit produitMisAJour = produitService.modifierProduit(id, produitDetails);
+        return ResponseEntity.ok(produitMisAJour);
+    }
 }

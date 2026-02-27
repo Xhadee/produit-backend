@@ -54,4 +54,24 @@ public class ProduitServiceImpl implements ProduitService {
     public List<Produit> verifierStocksCritiques() {
         return produitRepository.findProduitsEnAlerte();
     }
+
+    @Override
+    public Produit modifierProduit(Long id, Produit details) {
+        // 1. On récupère le produit existant ou on lève une exception si absent
+        Produit produitExistant = produitRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produit non trouvé avec l'id : " + id));
+
+        // 2. Mise à jour des informations
+        produitExistant.setDesignation(details.getDesignation());
+        produitExistant.setPrixUnitaire(details.getPrixUnitaire());
+        produitExistant.setQuantiteStock(details.getQuantiteStock());
+        produitExistant.setSeuilAlerte(details.getSeuilAlerte());
+
+        // 3. Mise à jour des relations (Catégorie & Fournisseur)
+        produitExistant.setCategorie(details.getCategorie());
+        produitExistant.setFournisseur(details.getFournisseur());
+
+        // 4. Enregistrement en base de données
+        return produitRepository.save(produitExistant);
+    }
 }

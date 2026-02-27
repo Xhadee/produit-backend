@@ -8,6 +8,7 @@ import sn.ugb.ipsl.produit_backend.model.Produit;
 import sn.ugb.ipsl.produit_backend.model.TypeMouvement;
 import sn.ugb.ipsl.produit_backend.repository.ProduitRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
@@ -16,51 +17,58 @@ public class StockPredictor {
     @Autowired
     private ProduitRepository produitRepository;
 
-    /**
-     * Calcule la prédiction de rupture pour un produit spécifique.
-     * Utilisé par l'IA Controller et le Stock Scheduler.
-     */
     @Transactional(readOnly = true)
     public PredictionResult calculerPrediction(Long produitId) {
         Produit produit = produitRepository.findById(produitId)
-                .orElseThrow(() -> new RuntimeException("Produit introuvable avec l'ID: " + produitId));
+                .orElseThrow(() -> new RuntimeException("Produit introuvable"));
 
-        List<MouvementStock> mouvements = produit.getMouvements();
-
-        // Calcul du volume total des sorties (ventes)
-        double totalVendu = mouvements.stream()
+        List<MouvementStock> sorties = produit.getMouvements().stream()
                 .filter(m -> m.getType() == TypeMouvement.SORTIE)
-                .mapToDouble(MouvementStock::getQuantite)
-                .sum();
+                .toList();
 
-        // Nombre de fois où le produit a été vendu
-        long nbVentes = mouvements.stream()
-                .filter(m -> m.getType() == TypeMouvement.SORTIE)
-                .count();
-
-        // Sécurité : évite les divisions par zéro ou les prédictions sur trop peu de données
-        if (nbVentes < 2) {
-            return new PredictionResult(produit.getDesignation(), 0.0, "Données historiques insuffisantes");
+        if (sorties.size() < 2) {
+            return genererResultatVide(produit);
         }
 
-        // Algorithme : Vitesse de croisière = Quantité totale vendue / Nombre de transactions
-        double vitesseConsommation = totalVendu / nbVentes;
-        double ventesRestantes = produit.getQuantiteStock() / vitesseConsommation;
+        double totalVendu = sorties.stream().mapToDouble(MouvementStock::getQuantite).sum();
+        double vitesseMoyenne = totalVendu / sorties.size();
 
-        // Logique de recommandation
-        String recommandation = (ventesRestantes < 5) ? "🚨 RÉAPPROVISIONNEMENT URGENT" : "✅ Stock sain";
+        int joursRestants = (int) (produit.getQuantiteStock() / vitesseMoyenne);
+        LocalDate dateRupture = LocalDate.now().plusDays(joursRestants);
 
+        double derniereVente = sorties.get(sorties.size() - 1).getQuantite();
+        String tendance = (derniereVente > vitesseMoyenne) ? "HAUSSE" :
+                (derniereVente < vitesseMoyenne ? "BAISSE" : "STABLE");
+
+        int quantiteSuggeree = (int) Math.max(0, (vitesseMoyenne * 30) - produit.getQuantiteStock());
+
+        // Sécurité : évite le NullPointerException si le prix est nul
+        double prix = (produit.getPrixUnitaire() != null) ? produit.getPrixUnitaire() : 0.0;
+        double impactFinancier = quantiteSuggeree * prix;
+
+        double confianceIA = Math.min(0.98, 0.5 + (sorties.size() * 0.05));
+        boolean estSaisonnier = tendance.equals("HAUSSE") && sorties.size() > 10;
+
+        String message = (joursRestants < 5) ?
+                "⚠️ Rupture imminente. Réapprovisionnement critique." :
+                "✅ Stock maîtrisé. Prochaine commande suggérée dans " + (joursRestants - 5) + " jours.";
+
+        // On retourne le record avec le champ imageUrl du produit
         return new PredictionResult(
+                produit.getId(),
                 produit.getDesignation(),
-                Math.round(ventesRestantes * 10.0) / 10.0, // Arrondi à une décimale
-                recommandation
+                joursRestants,
+                tendance,
+                message,
+                confianceIA,
+                quantiteSuggeree,
+                impactFinancier,
+                estSaisonnier,
+                dateRupture,
+                produit.getImageUrl() // Ajout de l'image ici
         );
     }
 
-    /**
-     * Analyse l'ensemble des produits pour trouver celui qui a le plus de succès.
-     * Logique de l'IA "Top Ventes".
-     */
     @Transactional(readOnly = true)
     public String calculerProduitStar() {
         List<Produit> produits = produitRepository.findAll();
@@ -80,10 +88,24 @@ public class StockPredictor {
         }
 
         if (star == null || maxVentes == 0) {
-            return "Aucune vente significative n'a été enregistrée pour le moment.";
+            return "Aucune vente significative enregistrée.";
         }
 
-        return String.format("🏆 PRODUIT STAR : %s | Total des ventes : %.0f unités.",
+        return String.format("🏆 PRODUIT STAR : %s | Total des sorties : %.0f unités.",
                 star.getDesignation(), maxVentes);
+    }
+
+    private PredictionResult genererResultatVide(Produit p) {
+        // Ajout de l'URL de l'image même en cas de données insuffisantes
+        return new PredictionResult(p.getId(), p.getDesignation(), 0, "STABLE",
+                "Données historiques insuffisantes pour une prédiction fiable.",
+                0.0, 0, 0.0, false, LocalDate.now(), p.getImageUrl());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PredictionResult> analyserToutLeStock() {
+        return produitRepository.findAll().stream()
+                .map(p -> calculerPrediction(p.getId()))
+                .toList();
     }
 }

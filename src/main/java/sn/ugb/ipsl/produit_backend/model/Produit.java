@@ -18,6 +18,10 @@ public class Produit {
     private Integer quantiteStock;
     private Integer seuilAlerte;
 
+    // Ajout du champ pour l'image
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl;
+
     @ManyToOne
     @JoinColumn(name = "categorie_id")
     private Categorie categorie;
@@ -26,19 +30,21 @@ public class Produit {
     @JoinColumn(name = "fournisseur_id")
     private Fournisseur fournisseur;
 
-    @JsonIgnore // Empêche l'erreur LazyInitializationException et la boucle infinie
+    @JsonIgnore
     @OneToMany(mappedBy = "produit", cascade = CascadeType.ALL)
     private List<MouvementStock> mouvements;
 
     // --- CONSTRUCTEURS ---
     public Produit() {}
 
-    public Produit(Long id, String designation, Double prixUnitaire, Integer quantiteStock, Integer seuilAlerte, Categorie categorie, Fournisseur fournisseur) {
+    // Constructeur mis à jour avec imageUrl
+    public Produit(Long id, String designation, Double prixUnitaire, Integer quantiteStock, Integer seuilAlerte, String imageUrl, Categorie categorie, Fournisseur fournisseur) {
         this.id = id;
         this.designation = designation;
         this.prixUnitaire = prixUnitaire;
         this.quantiteStock = quantiteStock;
         this.seuilAlerte = seuilAlerte;
+        this.imageUrl = imageUrl;
         this.categorie = categorie;
         this.fournisseur = fournisseur;
     }
@@ -58,6 +64,10 @@ public class Produit {
 
     public Integer getSeuilAlerte() { return seuilAlerte; }
     public void setSeuilAlerte(Integer seuilAlerte) { this.seuilAlerte = seuilAlerte; }
+
+    // Getter/Setter pour imageUrl
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public Categorie getCategorie() { return categorie; }
     public void setCategorie(Categorie categorie) { this.categorie = categorie; }

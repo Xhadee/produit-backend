@@ -19,42 +19,45 @@ public class StockScheduler {
     private ProduitService produitService;
 
     @Autowired
-    private StockPredictor stockPredictor; // Injection du module IA
+    private StockPredictor stockPredictor;
 
-    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
+    /**
+     * S'exécute toutes les 30 secondes pour analyser la santé du stock.
+     */
     @Scheduled(fixedRate = 30000)
     public void verifierLesStocks() {
-        System.out.println("\n--- 📊 RAPPORT INTELLIGENT DU " + dtf.format(LocalDateTime.now()) + " ---");
+        System.out.println("\n--- 🤖 ANALYSE IA DU " + dtf.format(LocalDateTime.now()) + " ---");
 
         List<Produit> tousLesProduits = produitService.listeProduits();
         boolean alerteTrouvee = false;
 
         for (Produit p : tousLesProduits) {
-            // On récupère la prédiction de l'IA pour chaque produit
+            // Appel de la nouvelle logique prédictive
             PredictionResult prediction = stockPredictor.calculerPrediction(p.getId());
 
-            // Condition d'affichage : soit le stock est bas, soit l'IA prédit une rupture proche
-            if (p.getQuantiteStock() <= p.getSeuilAlerte() || prediction.ventesAvantRupture() < 10) {
+            // On déclenche l'alerte si le seuil est atteint OU si l'IA prévoit moins de 5 jours restants
+            if (p.getQuantiteStock() <= p.getSeuilAlerte() || prediction.joursRestants() < 5) {
                 alerteTrouvee = true;
 
-                String icone = (p.getQuantiteStock() <= p.getSeuilAlerte()) ? "⚠️ SEUIL ATTEINT" : "🔮 PRÉDICTION IA";
+                String typeAlerte = (p.getQuantiteStock() <= p.getSeuilAlerte()) ? "🚨 SEUIL" : "🔮 IA-URGENCE";
 
-                System.out.printf("[%s] %-20s | Stock: %d | Seuil: %d | IA: %s (%.1f ventes rest.)%n",
-                        icone,
+                System.out.printf("[%s] %-20s | Stock: %d | Jours restants: %d | Tendance: %s | Recommandation: %s%n",
+                        typeAlerte,
                         p.getDesignation(),
                         p.getQuantiteStock(),
-                        p.getSeuilAlerte(),
-                        prediction.recommandation(),
-                        prediction.ventesAvantRupture());
+                        prediction.joursRestants(),
+                        prediction.tendance(),
+                        prediction.message());
             }
         }
 
         if (!alerteTrouvee) {
-            System.out.println("✅ État global du stock : Stable. Aucune action requise.");
+            System.out.println("✅ État du stock : Optimal. L'IA n'anticipe aucune rupture à court terme.");
         }
 
-        // Petit bonus : On affiche le produit star à chaque rapport
+        // Affichage du produit star via la méthode que nous avons ajoutée au StockPredictor
         System.out.println(stockPredictor.calculerProduitStar());
         System.out.println("-----------------------------------------------------------\n");
     }

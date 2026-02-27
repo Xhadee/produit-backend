@@ -11,4 +11,9 @@ public interface ProduitService {
     List<Produit> verifierStocksCritiques();
 
     List<Produit> listeProduits();
+
+    //Mise à jour (La nouvelle méthode)
+    Produit modifierProduit(Long id, Produit produitDetails);
+
+
 }

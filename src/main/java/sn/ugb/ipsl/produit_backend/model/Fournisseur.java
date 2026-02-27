@@ -15,14 +15,18 @@ public class Fournisseur {
     private String telephone;
     private String email;
 
+    // --- NOUVEAU CHAMP ---
+    private String adresse;
+
     // --- CONSTRUCTEURS ---
     public Fournisseur() {}
 
-    public Fournisseur(Long id, String nom, String telephone, String email) {
+    public Fournisseur(Long id, String nom, String telephone, String email, String adresse) {
         this.id = id;
         this.nom = nom;
         this.telephone = telephone;
         this.email = email;
+        this.adresse = adresse;
     }
 
     // --- GETTERS ET SETTERS ---
@@ -37,4 +41,7 @@ public class Fournisseur {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getAdresse() { return adresse; }
+    public void setAdresse(String adresse) { this.adresse = adresse; }
 }
