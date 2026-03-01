@@ -4,6 +4,9 @@ import sn.ugb.ipsl.produit_backend.model.Notification;
 import java.util.List;
 
 public interface NotificationService {
+
+    // --- MÉTHODES EXISTANTES ---
+
     // Récupérer les alertes non lues pour la cloche de notification
     List<Notification> getNotificationsNonLues();
 
@@ -13,6 +16,18 @@ public interface NotificationService {
     // Marquer une notification comme vue
     void marquerCommeLue(Long id);
 
-    // Tout supprimer ou marquer tout comme lu (optionnel)
+    // Tout marquer comme lu
     void marquerToutCommeLu();
+
+    // --- NOUVELLES MÉTHODES À AJOUTER ---
+
+    /**
+     * Récupère TOUTES les notifications pour la page historique (lues et non lues)
+     */
+    List<Notification> getAllNotifications();
+
+    /**
+     * Supprime définitivement une notification de la base de données
+     */
+    void supprimerNotification(Long id);
 }
