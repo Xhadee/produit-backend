@@ -47,44 +47,51 @@ sn.ugb.ipsl.produit_backend/
 ├── repository/    # Accès à la base de données (Spring Data JPA)
 ├── scheduler/     # Tâches planifiées (StockScheduler)
 └── service/       # Interfaces et implémentations métier (impl)
-```
-⚙️ Installation & Lancement
-Prérequis
-JDK 17 ou supérieur
+  ```
 
-Maven 3.x
+---
 
-Une instance MySQL active
+## ⚙️ Installation & Lancement
 
-Déploiement local
-Clonage du projet :
+### ✅ Prérequis
 
-Bash
-git clone [https://github.com/Xhadee/produit-backend.git](https://github.com/Xhadee/produit-backend.git)
+- JDK 17+
+- Maven 3.x
+- MySQL 8.0 en cours d’exécution
+
+---
+
+### 📥 Clonage du projet
+
+```bash
+git clone https://github.com/Xhadee/produit-backend.git
 cd produit-backend
-Configuration : Créez la base gestion_stock_db dans MySQL et ajustez les accès dans src/main/resources/application.properties.
+``` 
 
-Lancement :
+### 🗄️ Configuration
 
-Bash
+Créez la base de données `gestion_stock_db` dans MySQL, puis ajustez les paramètres de connexion dans :
+
+`src/main/resources/application.properties`
+
+---
+
+### ▶️ Lancement
+
+```bash
 mvn spring-boot:run
-🔗 Écosystème IPSLStock
-Repository Frontend : 🎨 Accéder au Frontend Angular
+```
+---
 
-👤 Auteur
-<p align="left">
-<strong>Développeur :</strong> Khady NDIAYE
+## 👤 Auteur
 
+<strong>Développeur :</strong> Khady NDIAYE  
+<strong>Formation :</strong> IPSL (Institut Polytechnique de Saint-Louis)  
+<strong>Promotion :</strong> 2025-2026  
 
-
-<strong>Formation :</strong> IPSL (Institut Polytechnique de Saint-Louis)
-
-
-
-<strong>Promotion :</strong> 2025-2026
-</p>
+---
 
 <p align="center">
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/Projet-Ing%C3%A9nieur-orange%3Fstyle%3Dflat-square" />
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/Backend-Operational-success%3Fstyle%3Dflat-square" />
+  <img src="https://img.shields.io/badge/Projet-Ing%C3%A9nieur-orange?style=flat-square" />
+  <img src="https://img.shields.io/badge/Backend-Operational-success?style=flat-square" />
 </p>
