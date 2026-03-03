@@ -83,6 +83,14 @@ mvn spring-boot:run
 ```
 ---
 
+
+## 🔗 Écosystème IPSLStock
+
+🎨 **Frontend Angular :**  
+👉 [IPSLStock Frontend](https://github.com/Xhadee/ipslstock-frontend)
+
+---
+
 ## 👤 Auteur
 
 <strong>Développeur :</strong> Khady NDIAYE  
